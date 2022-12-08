@@ -48,6 +48,8 @@ impl ToolBarPanel {
     }
 
     pub fn show(&mut self, ctx: &Context) -> Option<ToolBarResponse> {
+        puffin::profile_function!();
+
         let mut response = None;
 
         if let Some(pid) = self.ps_attach_window.show(ctx) {
@@ -143,6 +145,8 @@ impl ToolBarPanel {
     }
 
     fn project_menu(&mut self, ui: &mut Ui) {
+        puffin::profile_function!();
+
         let state = &mut *self.state.borrow_mut();
 
         if ui.button("New project").clicked() {
@@ -195,6 +199,8 @@ impl ToolBarPanel {
     }
 
     fn process_menu(&mut self, ui: &mut Ui, response: &mut Option<ToolBarResponse>) {
+        puffin::profile_function!();
+
         if ui.button("Attach to process").clicked() {
             self.ps_attach_window.toggle();
             ui.close_menu();
@@ -234,6 +240,8 @@ impl ToolBarPanel {
     }
 
     fn status_ui(&mut self, ui: &mut Ui, response: &mut Option<ToolBarResponse>) {
+        puffin::profile_function!();
+
         if let Some((proc_name, proc_id)) = self
             .state
             .borrow()
@@ -257,6 +265,8 @@ impl ToolBarPanel {
     }
 
     fn field_change_ui(&mut self, ui: &mut Ui, response: &mut Option<ToolBarResponse>) {
+        puffin::profile_function!();
+
         create_change_field_type_group!(ui, response, BLACK, GOLD, Bool);
 
         ui.separator();

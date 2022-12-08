@@ -84,6 +84,8 @@ impl Process {
     }
 
     pub fn read(&self, address: usize, buf: &mut [u8]) {
+        puffin::profile_function!();
+
         match self {
             // TODO(ItsEthra): Proper error handling maybe?.
             Self::Internal((op, _)) => _ = op.read_buf(address, buf),
@@ -92,6 +94,8 @@ impl Process {
     }
 
     pub fn write(&self, address: usize, buf: &[u8]) {
+        puffin::profile_function!();
+
         match self {
             // TODO(ItsEthra): Proper error handling maybe?.
             Self::Internal((op, _)) => _ = op.write_buf(address, buf),
@@ -100,6 +104,8 @@ impl Process {
     }
 
     pub fn id(&self) -> u32 {
+        puffin::profile_function!();
+
         match self {
             Self::Internal((op, _)) => op.id(),
             Self::Managed(ext) => ext.pid,
@@ -107,6 +113,8 @@ impl Process {
     }
 
     pub fn can_read(&self, address: usize) -> bool {
+        puffin::profile_function!();
+
         match self {
             Self::Internal((_, maps)) => maps
                 .iter()
@@ -116,6 +124,8 @@ impl Process {
     }
 
     pub fn name(&self) -> eyre::Result<String> {
+        puffin::profile_function!();
+
         match self {
             Self::Internal((op, _)) => op.name().map_err(Into::into),
             Self::Managed(_) => Ok("[MANAGED]".into()),

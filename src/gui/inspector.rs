@@ -37,6 +37,8 @@ impl InspectorPanel {
     }
 
     pub fn show(&mut self, ctx: &Context) -> Option<()> {
+        puffin::profile_function!();
+
         CentralPanel::default().show(ctx, |ui| {
             ui.scope(|ui| {
                 ui.style_mut().override_font_id = Some(FontId::monospace(18.));
@@ -86,6 +88,8 @@ impl InspectorPanel {
     }
 
     fn inspect(&mut self, ui: &mut Ui) -> Option<()> {
+        puffin::profile_function!();
+
         let state = &mut *self.state.borrow_mut();
         let rng = Rng::with_seed(0);
 

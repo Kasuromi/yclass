@@ -67,6 +67,8 @@ impl<const N: usize> Field for IntField<N> {
     }
 
     fn draw(&self, ui: &mut Ui, ctx: &mut InspectionContext) -> Option<FieldResponse> {
+        puffin::profile_function!();
+
         let mut buf = [0; N];
         let address = ctx.address + ctx.offset;
         ctx.process.read(ctx.address + ctx.offset, &mut buf);

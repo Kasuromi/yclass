@@ -89,6 +89,8 @@ mod private {
 pub use private::next_id;
 
 fn create_text_format(selected: bool, col: Color32) -> TextFormat {
+    puffin::profile_function!();
+
     if selected {
         TextFormat {
             underline: Stroke::new(1., Color32::LIGHT_GRAY),

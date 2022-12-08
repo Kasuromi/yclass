@@ -37,6 +37,8 @@ impl Field for BoolField {
     }
 
     fn draw(&self, ui: &mut Ui, ctx: &mut InspectionContext) -> Option<FieldResponse> {
+        puffin::profile_function!();
+
         let mut val = 0u8;
         let address = ctx.address + ctx.offset;
         ctx.process.read(address, slice::from_mut(&mut val));

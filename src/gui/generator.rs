@@ -26,6 +26,8 @@ impl GeneratorWindow {
     }
 
     pub fn show(&mut self, ctx: &Context) {
+        puffin::profile_function!();
+
         if !self.shown {
             return;
         }

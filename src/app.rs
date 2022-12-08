@@ -28,6 +28,14 @@ impl YClassApp {
 
 impl App for YClassApp {
     fn update(&mut self, ctx: &Context, frame: &mut Frame) {
+        #[cfg(debug_assertions)]
+        ctx.request_repaint();
+        #[cfg(not(debug_assertions))]
+        ctx.request_repaint_after(std::time::Duration::from_millis(100));
+
+        puffin::GlobalProfiler::lock().new_frame();
+        puffin::profile_function!();
+
         static DPI_INIT: Once = Once::new();
         DPI_INIT.call_once(|| {
             let dpi = self.state.borrow().config.dpi.unwrap_or(1.);

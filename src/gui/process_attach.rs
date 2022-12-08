@@ -27,6 +27,8 @@ impl ProcessAttachWindow {
     }
 
     pub fn show(&mut self, ctx: &Context) -> Option<u32> {
+        puffin::profile_function!();
+
         if !self.shown {
             return None;
         }

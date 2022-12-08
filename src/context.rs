@@ -32,6 +32,8 @@ pub struct Selection {
 
 impl InspectionContext<'_> {
     pub fn select(&mut self, field_id: FieldId) {
+        puffin::profile_function!();
+
         if self.is_selected(field_id) {
             self.selection = None;
         } else {
@@ -44,6 +46,8 @@ impl InspectionContext<'_> {
     }
 
     pub fn is_selected(&self, field_id: FieldId) -> bool {
+        puffin::profile_function!();
+
         self.selection
             .as_ref()
             .map(|s| s.address == self.address + self.offset)

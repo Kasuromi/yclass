@@ -12,6 +12,8 @@ pub fn display_field_prelude(
     ctx: &mut InspectionContext,
     job: &mut LayoutJob,
 ) {
+    puffin::profile_function!();
+
     job.append(&format!("{:04X}", ctx.offset), 0., {
         let mut tf = create_text_format(ctx.is_selected(field.id()), Color32::KHAKI);
         // Highlight unaligned fields
@@ -57,6 +59,8 @@ pub fn display_field_value<T: Display>(
     mut displayed_value: impl FnMut(bool) -> T,
     write_new_value: impl FnOnce(&str) -> bool,
 ) {
+    puffin::profile_function!();
+
     let editing_value = &mut *state.editing_state.borrow_mut();
     if let Some(EditingState {
         address,
@@ -121,6 +125,8 @@ pub fn display_field_name(
     state: &NamedState,
     color: Color32,
 ) {
+    puffin::profile_function!();
+
     if state
         .renaming_id
         .get()
@@ -182,6 +188,8 @@ pub fn display_field_name(
 }
 
 pub fn allocate_padding(mut n: usize) -> Vec<Box<dyn Field>> {
+    puffin::profile_function!();
+
     let mut fields = vec![];
 
     while n >= 8 {

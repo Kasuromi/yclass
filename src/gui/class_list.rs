@@ -21,6 +21,8 @@ impl ClassListPanel {
     }
 
     pub fn show(&mut self, ctx: &Context) {
+        puffin::profile_function!();
+
         SidePanel::left("_class_list").show(ctx, |ui| {
             ui.add_space(4.);
             ui.vertical_centered_justified(|ui| {

@@ -37,6 +37,8 @@ impl PointerField {
     }
 
     fn show_header(&self, ui: &mut Ui, ctx: &mut InspectionContext, address: usize) {
+        puffin::profile_function!();
+
         let class = self.class_id.get().and_then(|id| ctx.class_list.by_id(id));
 
         let (text, exists) = if let Some(cl) = class {
@@ -122,6 +124,8 @@ impl PointerField {
         ctx: &mut InspectionContext,
         address: usize,
     ) -> Option<FieldResponse> {
+        puffin::profile_function!();
+
         if !ctx.process.can_read(address) {
             ui.heading(
                 RichText::new("Pointer's body is only allowed at valid addresses")
@@ -182,6 +186,8 @@ impl Field for PointerField {
     }
 
     fn draw(&self, ui: &mut Ui, ctx: &mut InspectionContext) -> Option<FieldResponse> {
+        puffin::profile_function!();
+
         let mut response = None;
 
         // TODO(ItsEthra): Again, pointer size differs in 32-bit processes.

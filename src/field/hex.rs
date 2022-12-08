@@ -49,6 +49,8 @@ impl<const N: usize> HexField<N> {
     }
 
     fn byte_view(&self, ctx: &mut InspectionContext, job: &mut LayoutJob, buf: &[u8; N]) {
+        puffin::profile_function!();
+
         for (i, b) in buf.iter().enumerate() {
             let rng = fastrand::Rng::with_seed(*b as _);
             let color = if *b == 0 {
@@ -67,6 +69,8 @@ impl<const N: usize> HexField<N> {
     }
 
     fn int_view(&self, ui: &mut Ui, ctx: &mut InspectionContext, buf: &[u8; N]) {
+        puffin::profile_function!();
+
         let mut job = LayoutJob::default();
         let (mut high, mut low) = (0i64, 0i64);
 
@@ -102,6 +106,8 @@ impl<const N: usize> HexField<N> {
     }
 
     fn float_view(&self, ui: &mut Ui, ctx: &mut InspectionContext, buf: &[u8; N]) {
+        puffin::profile_function!();
+
         if N != 4 && N != 8 {
             return;
         }
@@ -144,6 +150,8 @@ impl<const N: usize> HexField<N> {
         buf: &[u8; N],
         response: &mut Option<FieldResponse>,
     ) {
+        puffin::profile_function!();
+
         if N != 8 {
             return;
         }
@@ -223,6 +231,8 @@ impl<const N: usize> Field for HexField<N> {
     }
 
     fn draw(&self, ui: &mut Ui, ctx: &mut InspectionContext) -> Option<FieldResponse> {
+        puffin::profile_function!();
+
         let mut buf = [0; N];
         ctx.process.read(ctx.address + ctx.offset, &mut buf);
 

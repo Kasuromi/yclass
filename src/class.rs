@@ -87,22 +87,32 @@ impl ClassList {
     }
 
     pub fn by_id(&self, id: usize) -> Option<&Class> {
+        puffin::profile_function!();
+
         self.classes.iter().find(|c| c.id == id)
     }
 
     pub fn by_id_mut(&mut self, id: usize) -> Option<&mut Class> {
+        puffin::profile_function!();
+
         self.classes.iter_mut().find(|c| c.id == id)
     }
 
     pub fn by_name(&self, name: &str) -> Option<&Class> {
+        puffin::profile_function!();
+
         self.classes.iter().find(|c| c.name == name)
     }
 
     pub fn delete_by_id(&mut self, id: usize) {
+        puffin::profile_function!();
+
         self.classes.retain(|c| c.id != id);
     }
 
     pub fn selected_class(&self) -> Option<&Class> {
+        puffin::profile_function!();
+
         self.selected
             .and_then(|i| self.classes.iter().find(|c| c.id == i))
     }
