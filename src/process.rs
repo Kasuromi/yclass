@@ -7,11 +7,11 @@ pub struct ManagedExtension {
     #[allow(dead_code)]
     lib: Library,
 
-    attach: fn(u32) -> u32,
-    read: fn(usize, *mut u8, usize) -> u32,
-    write: fn(usize, *const u8, usize) -> u32,
-    can_read: fn(usize) -> bool,
-    detach: fn(),
+    attach: extern "C" fn(u32) -> u32,
+    read: extern "C" fn(usize, *mut u8, usize) -> u32,
+    write: extern "C" fn(usize, *const u8, usize) -> u32,
+    can_read: extern "C" fn(usize) -> bool,
+    detach: extern "C" fn(),
 }
 
 impl Drop for ManagedExtension {
@@ -46,11 +46,13 @@ impl ProcessManager {
         let metadata = fs::metadata(&path);
         let plugin = if metadata.is_ok() {
             let lib = unsafe { Library::new(&path)? };
-            let attach = unsafe { *lib.get::<fn(u32) -> u32>(b"yc_attach")? };
-            let read = unsafe { *lib.get::<fn(usize, *mut u8, usize) -> u32>(b"yc_read")? };
-            let write = unsafe { *lib.get::<fn(usize, *const u8, usize) -> u32>(b"yc_write")? };
-            let can_read = unsafe { *lib.get::<fn(usize) -> bool>(b"yc_can_read")? };
-            let detach = unsafe { *lib.get::<fn()>(b"yc_detach")? };
+            let attach = unsafe { *lib.get::<extern "C" fn(u32) -> u32>(b"yc_attach")? };
+            let read =
+                unsafe { *lib.get::<extern "C" fn(usize, *mut u8, usize) -> u32>(b"yc_read")? };
+            let write =
+                unsafe { *lib.get::<extern "C" fn(usize, *const u8, usize) -> u32>(b"yc_write")? };
+            let can_read = unsafe { *lib.get::<extern "C" fn(usize) -> bool>(b"yc_can_read")? };
+            let detach = unsafe { *lib.get::<extern "C" fn()>(b"yc_detach")? };
 
             Some(ManagedExtension {
                 lib,
