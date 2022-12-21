@@ -54,10 +54,10 @@ Required functions:
 * `fn yc_can_read(address: usize) -> bool` - Called(mildly frequently) to check if address is "readable", i.e. a pointer.
     * `address` - is in attached process address space.
 * `fn yc_detach()` - Called when detaching from a process.
-* `fn yc_next_process(start: bool, name: *mut u8, id: *mut u32, name_len: *mut u32) -> bool`
-    - Function used to fetch running processes. Called in a loop while it returns `true` to collect all process.
+* `fn yc_next_process(start: bool, name: *mut u8, id: *mut u32, name_len: *mut u32) -> bool` - Function is used to fetch running processes.
+    Called in a loop while it returns `true` to collect all process.
     Function must return `false` when iterating over process list is over.
-    * `start` - Indicates that it is the first time function is called.
+    * `start` - Indicates that it is the first time function is called for a single iteration cycle.
     * `name` - A pointer to the 256 byte buffer in the current process's address space.
     Plugin should store there process's name in UTF-8 format.
     * `id` - A pointer to an unsigned 32-bit integer in the current process's address space.
