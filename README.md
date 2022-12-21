@@ -46,14 +46,24 @@ Otherwise return value is displayed in the notification.
 Required functions:
 * `fn yc_attach(process_id: u32) -> u32` - Called when attaching to a process.
 * `fn yc_read(address: usize, buffer: *mut u8, buffer_size: usize) -> u32` - Called(very frequently) when reading memory.
-    * `address` is in attached process address space.
-    * `buffer` is in current process address space.
+    * `address` - address in the attached process's address space.
+    * `buffer` - address in the current process's address space.
 * `fn yc_write(address: usize, buffer: *const u8, buffer_size: usize) -> u32` - Called(rarely) when writing memory.
-    * `address` is in attached process address space.
-    * `buffer` is in current process address space.
+    * `address` - address in the attached process's address space.
+    * `buffer` - address in the current process's address space.
 * `fn yc_can_read(address: usize) -> bool` - Called(mildly frequently) to check if address is "readable", i.e. a pointer.
-    * `address` is in attached process address space.
+    * `address` - is in attached process address space.
 * `fn yc_detach()` - Called when detaching from a process.
+* `fn yc_next_process(start: bool, name: *mut u8, id: *mut u32, name_len: *mut u32) -> bool`
+    - Function used to fetch running processes. Called in a loop while it returns `true` to collect all process.
+    Function must return `false` when iterating over process list is over.
+    * `start` - Indicates that it is the first time function is called.
+    * `name` - A pointer to the 256 byte buffer in the current process's address space.
+    Plugin should store there process's name in UTF-8 format.
+    * `id` - A pointer to an unsigned 32-bit integer in the current process's address space.
+    Plugin should store there process's id.
+    * `name_len` - A pointer to an unsigned 32-bit integer in the current process's address space.
+    Plugin should store there length of the name in bytes.
 ### After its done, put your library at `./plugin.ycpl` or specify the path under `plugin_path` key in your config.
 Config path:
 * Windows - `C:\Users\%USER%\AppData\Roaming\yclass\config.toml`
