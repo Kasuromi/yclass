@@ -1,5 +1,6 @@
+use crate::process::ProcessManager;
+
 use super::{bytes_to_value, SearchOptions, SearchResult};
-use crate::process::Process;
 use parking_lot::{Mutex, RwLock};
 use std::{
     sync::{
@@ -36,7 +37,7 @@ impl ScannerState {
         self.active
     }
 
-    pub fn begin(&mut self, process: &Arc<RwLock<Option<Process>>>, options: SearchOptions) {
+    pub fn begin(&mut self, process: &Arc<RwLock<ProcessManager>>, options: SearchOptions) {
         self.active = true;
         self.start = Instant::now();
         self.counter.store(0, Ordering::SeqCst);
@@ -68,7 +69,7 @@ impl ScannerState {
 
 fn recursive_first_search(
     counter: Arc<AtomicU16>,
-    process: Arc<RwLock<Option<Process>>>,
+    process: Arc<RwLock<ProcessManager>>,
     results: Arc<Mutex<Vec<SearchResult>>>,
     opts: SearchOptions,
 ) {
@@ -87,15 +88,9 @@ fn recursive_first_search(
 
     for address in (start..start + opts.struct_size).step_by(opts.alignment) {
         let mut buf = [0; 8];
-        process.read().as_ref().unwrap().read(address, &mut buf[..]);
+        process.read().read(address, &mut buf[..]);
 
-        if address % 8 == 0
-            && process
-                .read()
-                .as_ref()
-                .unwrap()
-                .can_read(usize::from_ne_bytes(buf))
-        {
+        if address % 8 == 0 && process.read().can_read(usize::from_ne_bytes(buf)) {
             rayon::spawn({
                 let results = results.clone();
                 let offsets = opts.offsets.clone();

@@ -250,17 +250,12 @@ impl ToolBarPanel {
     }
 
     fn status_ui(&mut self, ui: &mut Ui, response: &mut Option<ToolBarResponse>) {
-        if let Some((proc_name, proc_id)) = self
-            .state
-            .borrow()
-            .process
-            .as_ref()
-            .read()
-            .as_ref()
-            .map(|p| (p.name(), p.id()))
-        {
-            match proc_name {
-                Ok(name) => _ = ui.label(format!("Status: Attached to {} - {}", name, proc_id)),
+        let state = self.state.borrow();
+        let proc = state.process.read();
+
+        if proc.is_attached() {
+            match proc.name() {
+                Ok(name) => _ = ui.label(format!("Status: Attached to {} - {}", name, proc.id())),
                 Err(e) => {
                     self.state
                         .borrow_mut()

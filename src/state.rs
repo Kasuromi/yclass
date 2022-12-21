@@ -1,6 +1,6 @@
 use crate::{
     class::ClassList, config::YClassConfig, context::Selection, hotkeys::HotkeyManager,
-    process::Process, project::ProjectData,
+    process::ProcessManager, project::ProjectData,
 };
 use egui_notify::Toasts;
 use parking_lot::RwLock;
@@ -16,8 +16,8 @@ pub type StateRef = &'static RefCell<GlobalState>;
 
 pub struct GlobalState {
     pub last_opened_project: Option<PathBuf>,
+    pub process: Arc<RwLock<ProcessManager>>,
     pub selection: Option<Selection>,
-    pub process: Arc<RwLock<Option<Process>>>,
     pub hotkeys: HotkeyManager,
     pub inspect_address: usize,
     pub class_list: ClassList,
@@ -33,13 +33,15 @@ impl Default for GlobalState {
         let config = YClassConfig::load_or_default();
 
         Self {
+            process: Arc::new(RwLock::new(
+                ProcessManager::new(&config).expect("Failed to initialize process"),
+            )),
             #[cfg(debug_assertions)]
             inspect_address: config.last_address.unwrap_or(0),
             hotkeys: HotkeyManager::default(),
             class_list: ClassList::default(),
             last_opened_project: None,
             toasts: Toasts::default(),
-            process: Arc::default(),
             #[cfg(not(debug_assertions))]
             inspect_address: 0,
             selection: None,

@@ -6,7 +6,7 @@ use crate::{
         spider::{bytes_to_value, parse_kind_to_value, SearchOptions},
         TextEditBind, TextEditFromStrBind,
     },
-    process::Process,
+    process::ProcessManager,
     state::StateRef,
 };
 use eframe::{
@@ -93,7 +93,7 @@ impl SpiderWindow {
                 let state = &mut *self.state.borrow_mut();
 
                 let process_lock = state.process.read();
-                let Some(process) = process_lock.as_ref() else {
+                if !process_lock.is_attached() {
                     ui.centered_and_justified(|ui| {
                         ui.heading("Attach to a process first");
                     });
@@ -201,7 +201,12 @@ impl SpiderWindow {
 
                                 let time = Instant::now();
                                 self.results.retain_mut(|r| {
-                                    r.should_remain(process, address, self.filter, value)
+                                    r.should_remain(
+                                        &mut *state.process.write(),
+                                        address,
+                                        self.filter,
+                                        value,
+                                    )
                                 });
                                 self.scanner_status = Some(
                                     format!("Finished in: {:.2}", time.elapsed().as_secs_f32())
@@ -226,7 +231,7 @@ impl SpiderWindow {
 
                     ui.separator();
 
-                    self.display_results(process, ui);
+                    self.display_results(&*state.process.read(), ui);
                 }
 
                 Ok(())
@@ -235,7 +240,7 @@ impl SpiderWindow {
             .transpose()
     }
 
-    fn display_results(&mut self, process: &Process, ui: &mut Ui) {
+    fn display_results(&mut self, process: &ProcessManager, ui: &mut Ui) {
         const DATA_HEIGHT: f32 = 14.;
         ui.style_mut().override_font_id = Some(FontId::monospace(DATA_HEIGHT));
 

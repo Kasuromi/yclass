@@ -2,7 +2,6 @@ use crate::{
     context::Selection,
     field::allocate_padding,
     gui::{ClassListPanel, InspectorPanel, ToolBarPanel, ToolBarResponse},
-    process::Process,
     state::StateRef,
 };
 use eframe::{egui::Context, epaint::Color32, App, Frame};
@@ -176,7 +175,7 @@ impl App for YClassApp {
                     .clone() /* ??? */
                     .try_write()
                 {
-                    *process = None;
+                    process.detach();
                     frame.set_window_title("YClass");
                 } else {
                     state.toasts.warning("Process is currently in use");
@@ -190,30 +189,10 @@ impl App for YClassApp {
                     .clone() /* ??? */
                     .try_write()
                 {
-                    match Process::attach(pid, &state.config) {
-                        Ok(proc) => {
-                            frame.set_window_title(&format!("YClass - Attached to {pid}"));
-                            if let Process::Internal((op, _)) = &proc {
-                                match op.name() {
-                                    Ok(name) => {
-                                        state.config.last_attached_process_name = Some(name);
-                                        state.config.save();
-                                    }
-                                    Err(e) => {
-                                        _ = state
-                                            .toasts
-                                            .error(format!("Failed to get process name: {e}"))
-                                    }
-                                }
-                            }
-
-                            *process = Some(proc);
-                        }
-                        Err(e) => {
-                            state.toasts.error(format!(
-                                "Failed to attach to process.\nPossibly plugin error.\n{e}"
-                            ));
-                        }
+                    if let Err(e) = process.attach(pid) {
+                        state
+                            .toasts
+                            .error(format!("Failed to attach to process. {e}"));
                     }
                 } else {
                     state.toasts.warning("Process is currently in use");
