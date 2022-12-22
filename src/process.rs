@@ -1,9 +1,9 @@
 use crate::config::YClassConfig;
 use libloading::Library;
 use memflex::external::{MemoryRegion, OwnedProcess};
-use std::fs;
+use std::{fs, mem::MaybeUninit};
 
-pub struct ManagedExtension {
+struct ManagedExtension {
     #[allow(dead_code)]
     lib: Library,
 
@@ -12,12 +12,18 @@ pub struct ManagedExtension {
     write: extern "C" fn(usize, *const u8, usize) -> u32,
     can_read: extern "C" fn(usize) -> bool,
     detach: extern "C" fn(),
+    next_process: extern "C" fn(bool, *mut u8, *mut u32, *mut u32) -> bool,
 }
 
 impl Drop for ManagedExtension {
     fn drop(&mut self) {
         (self.detach)();
     }
+}
+
+pub struct ProcessEntry {
+    pub name: String,
+    pub id: u32,
 }
 
 enum AttachedProcess {
@@ -53,6 +59,11 @@ impl ProcessManager {
                 unsafe { *lib.get::<extern "C" fn(usize, *const u8, usize) -> u32>(b"yc_write")? };
             let can_read = unsafe { *lib.get::<extern "C" fn(usize) -> bool>(b"yc_can_read")? };
             let detach = unsafe { *lib.get::<extern "C" fn()>(b"yc_detach")? };
+            let next_process = unsafe {
+                *lib.get::<extern "C" fn(bool, *mut u8, *mut u32, *mut u32) -> bool>(
+                    b"yc_next_process",
+                )?
+            };
 
             Some(ManagedExtension {
                 lib,
@@ -61,6 +72,7 @@ impl ProcessManager {
                 write,
                 can_read,
                 detach,
+                next_process,
             })
         } else if modified {
             return Err(eyre::eyre!("Failed to create plugin. Path doesn't exists"));
@@ -113,10 +125,6 @@ impl ProcessManager {
     }
 
     pub fn detach(&mut self) {
-        if let Some(ref pl) = self.plugin {
-            (pl.detach)();
-        }
-
         self.attached = None;
     }
 
@@ -181,6 +189,36 @@ impl ProcessManager {
             };
 
             Ok(proc.name()?)
+        }
+    }
+
+    pub fn all_processes(&self) -> eyre::Result<Vec<ProcessEntry>> {
+        if let Some(ref pl) = self.plugin {
+            let mut procs = vec![];
+
+            let mut first = true;
+            let mut name: MaybeUninit<[u8; 256]> = MaybeUninit::uninit();
+            let mut id: u32 = 0;
+            let mut name_len: u32 = 0;
+
+            while (pl.next_process)(first, name.as_mut_ptr() as _, &mut id, &mut name_len) {
+                first = false;
+                unsafe {
+                    let name = String::from_utf8_lossy(&name.assume_init()[..name_len as usize])
+                        .into_owned();
+
+                    procs.push(ProcessEntry { name, id })
+                }
+            }
+
+            Ok(procs)
+        } else {
+            Ok(memflex::external::ProcessIterator::new()?
+                .map(|e| ProcessEntry {
+                    id: e.id,
+                    name: e.name,
+                })
+                .collect())
         }
     }
 }

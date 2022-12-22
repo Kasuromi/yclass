@@ -8,7 +8,6 @@ use eframe::{
     egui::{style::Margin, Button, Context, Frame, RichText, TopBottomPanel, Ui, WidgetText},
     epaint::{vec2, Color32, Rounding},
 };
-use memflex::external::ProcessIterator;
 
 macro_rules! create_change_field_type_group {
     ($ui:ident, $r:ident, $fg:ident, $bg:ident, $($size:ident),*) => {
@@ -227,12 +226,17 @@ impl ToolBarPanel {
     fn process_menu(&mut self, ui: &mut Ui, response: &mut Option<ToolBarResponse>) {
         ui.set_width(200.);
 
-        let state = &mut *self.state.borrow_mut();
-
-        if shortcut_button(ui, state, "attach_process", "Attach to process") {
+        if shortcut_button(
+            ui,
+            &mut *self.state.borrow_mut(),
+            "attach_process",
+            "Attach to process",
+        ) {
             self.ps_attach_window.toggle();
             ui.close_menu();
         }
+
+        let state = &mut *self.state.borrow_mut();
 
         // Reattach to last process
         if let Some(name) = state.config.last_attached_process_name.as_ref().cloned() {
@@ -310,8 +314,8 @@ fn shortcut_button(
 }
 
 fn attach_to_process(state: &mut GlobalState, name: &str, response: &mut Option<ToolBarResponse>) {
-    let last_proc = match ProcessIterator::new() {
-        Ok(mut piter) => piter.find(|pe| pe.name.eq_ignore_ascii_case(name)),
+    let last_proc = match state.process.read().all_processes() {
+        Ok(p) => p.into_iter().find(|pe| pe.name.eq_ignore_ascii_case(name)),
         Err(e) => {
             state
                 .toasts

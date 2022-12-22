@@ -1,19 +1,20 @@
-use crate::state::StateRef;
+use crate::{process::ProcessEntry, state::StateRef};
 use eframe::{
     egui::{Context, RichText, ScrollArea, TextEdit, Window},
     epaint::{vec2, FontId},
 };
-use memflex::external::{ProcessEntry, ProcessIterator};
 
 pub struct ProcessAttachWindow {
     shown: bool,
     filter: String,
     processes: Vec<ProcessEntry>,
+    state: StateRef,
 }
 
 impl ProcessAttachWindow {
-    pub fn new(_: StateRef) -> Self {
+    pub fn new(state: StateRef) -> Self {
         Self {
+            state,
             processes: vec![],
             shown: false,
             filter: "".to_owned(),
@@ -24,7 +25,7 @@ impl ProcessAttachWindow {
         self.shown = !self.shown;
 
         if self.shown {
-            self.processes = collect_processes();
+            self.update_processes();
         }
     }
 
@@ -33,10 +34,13 @@ impl ProcessAttachWindow {
             return None;
         }
 
+        // I promise I won't use it later :/
+        let shown = unsafe { &mut (*(self as *mut Self)).shown };
         let mut attach_pid = None;
+
         Window::new("Attach to process")
             .collapsible(false)
-            .open(&mut self.shown)
+            .open(shown)
             .default_size(vec2(180., 320.))
             .show(ctx, |ui| {
                 ui.vertical_centered_justified(|ui| {
@@ -47,7 +51,7 @@ impl ProcessAttachWindow {
                         .response;
 
                     if ui.button("Refresh").clicked() || r.changed() {
-                        self.processes = collect_processes();
+                        self.update_processes();
                     }
 
                     ui.add_space(4.);
@@ -75,8 +79,18 @@ impl ProcessAttachWindow {
 
         attach_pid
     }
-}
 
-fn collect_processes() -> Vec<ProcessEntry> {
-    ProcessIterator::new().into_iter().flatten().collect()
+    fn update_processes(&mut self) {
+        let mut state = self.state.borrow_mut();
+        let out = state.process.read().all_processes();
+
+        match out {
+            Ok(p) => self.processes = p,
+            Err(e) => {
+                _ = state
+                    .toasts
+                    .error(format!("Failed to iterate over processes. {e}"))
+            }
+        }
+    }
 }
